@@ -3,8 +3,18 @@ Contains the config class (pyuic.cfg or pyuic.json)
 
 """
 import json
+import shutil
 
 from .utils import write_message
+
+import shlex
+try:
+    # Python 3
+    from shlex import quote
+except ImportError:
+    # Python 2
+    from pipes import quote
+
 
 class QtApi:
     pyqt4 = 0
@@ -23,10 +33,12 @@ class Config:
         self.hooks = []
 
     def uic_command(self):
-        return self.pyuic + ' ' + self.pyuic_options + ' %s -o %s'
+        pyuic = quote(shutil.which(self.pyuic))
+        return pyuic + ' ' + self.pyuic_options + ' %s -o %s'
 
     def rcc_command(self):
-        return self.pyrcc + ' ' + self.pyrcc_options + ' %s -o %s'
+        pyrcc = quote(shutil.which(self.pyrcc))
+        return pyrcc + ' ' + self.pyrcc_options + ' %s -o %s'
 
     def load(self):
         for ext in ['.cfg', '.json']:

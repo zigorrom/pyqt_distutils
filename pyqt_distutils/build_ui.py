@@ -21,10 +21,13 @@ class build_ui(Command):
     user_options = [
         ('force', None,
          'Force flag, will force recompilation of every ui/qrc file'),
+        ('uipostfix', None, 
+        'Adds _ui postfix to every converted ui destination .py file'),
     ]
 
     def initialize_options(self):
         self.force = False
+        self.uipostfix = False
         self._hooks = load_hooks()
 
     def finalize_options(self):
@@ -73,7 +76,9 @@ class build_ui(Command):
                 dst = os.path.join(os.getcwd(), dest)
                 ui = True
                 if src.endswith('.ui'):
-                    ext = '_ui.py'
+                    ext = '.py'
+                    if self.uipostfix:
+                        ext = '_ui.py'
                     cmd = self.cfg.uic_command()
                 elif src.endswith('.qrc'):
                     ui = False
@@ -91,9 +96,13 @@ class build_ui(Command):
 
                 if self.is_outdated(src, dst, ui):
                     try:
-                        cmd = build_args(cmd, src, dst)
-                        subprocess.check_call(cmd)
-                        cmd = ' '.join(cmd)
+                        src = os.path.abspath(src)
+                        dst = os.path.abspath(dst)
+                        cmd_call = build_args(cmd, src, dst)
+                        cmd = ' '.join(cmd_call)
+                        subprocess.check_call(cmd_call)
+                        
+                        
                     except subprocess.CalledProcessError as e:
                         if e.output:
                             write_message(cmd, 'yellow')
